@@ -21,9 +21,12 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, http.StatusOK, "home.html", &templateData{
-		Snippets: snippets,
-	})
+	// Call the newTemplateData() helper to get a template Data struct containing the 'default' data.
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+
+	// Pass the data to the render() helper.
+	app.render(w, http.StatusOK, "home.html", data)
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {

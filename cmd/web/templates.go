@@ -3,16 +3,27 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
-	"golang.org/x/tools/go/analysis/passes/nilfunc"
 	"snippetbox.alexedwards.net/internal/models"
 )
 
 // Define a templateData type to act as the holding structure for any dynamic data that pass to HTML templates.
 type templateData struct {
-	Snippet *models.Snippet
+	CurrentYear int
+	Snippet     *models.Snippet
 	// Include ta Snippets field in the templateData struct.
 	Snippets []*models.Snippet
+}
+
+// Create a humanDate function which return a nicely formatted string
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+// Initialize a template.FuncMap object and store it in a global variable.
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
@@ -30,8 +41,9 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// Extract the file name from the path
 		name := filepath.Base(page)
 
-		// Parse the base template file
-		ts, err := template.ParseFiles("./ui/html/base.html")
+		// register template.FuncMap method before call the ParseFiles method.
+		// Use New() method create an empty template set, use the Funcs() method to register the template template.FuncMap
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
 		if err != nil {
 			return nil, err
 		}
