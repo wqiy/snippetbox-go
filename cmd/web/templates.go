@@ -3,17 +3,17 @@ package main
 import (
 	"html/template"
 	"path/filepath"
-	"time"
-
 	"snippetbox.alexedwards.net/internal/models"
+	"time"
 )
 
 // Define a templateData type to act as the holding structure for any dynamic data that pass to HTML templates.
 type templateData struct {
 	CurrentYear int
 	Snippet     *models.Snippet
-	// Include ta Snippets field in the templateData struct.
-	Snippets []*models.Snippet
+	Snippets    []*models.Snippet
+	// Add a form field
+	Form any
 }
 
 // Create a humanDate function which return a nicely formatted string
