@@ -35,13 +35,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
-	// Use the ParamsFromContext() function to retrieve a slice containing these parameter names and values.
 	params := httprouter.ParamsFromContext(r.Context())
 
-	// Use the ByName() method to get the value of the "id" named parameter from the slice and validate it normal.
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
-		app.notFound(w) // Use notFound() helper.
+		app.notFound(w)
 		return
 	}
 
@@ -72,15 +70,9 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
 	var form snippetCreateForm
 
-	err = app.formDecoder.Decode(&form, r.PostForm)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -104,6 +96,8 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Update the redirect path to use the new clean URL format.
+	// Use the Put() method to add a string value adn the corresponding key "flash" to the session data.
+	app.sessionManager.Put(r.Context(), "flash", "Sippet successfully created!")
+
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

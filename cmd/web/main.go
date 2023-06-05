@@ -8,7 +8,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 
@@ -21,6 +24,8 @@ type application struct {
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
+	// Add a new sessionManger field to the application struct.
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -42,23 +47,26 @@ func main() {
 	db.QueryRow("SELECT VERSION()").Scan(&version)
 	fmt.Println("Connected to:", version)
 
-	// Initialize a new template cache
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
-	// Initialize a decoder instance
 	formDecoder := form.NewDecoder()
 
+	// Use the scs.New() to initialize a new session manager.
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		// Initialize a models.SnippetModel instance and add it to the application.
+		errorLog:      errorLog,
+		infoLog:       infoLog,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
-		// Add decoder to the application dependencies.
-		formDecoder: formDecoder,
+		formDecoder:   formDecoder,
+		// Add the manager to application dependencies.
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{
